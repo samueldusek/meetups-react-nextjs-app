@@ -32,7 +32,6 @@ const DUMMY_MEETUPS = [
 function HomePage() {
   return (
     <Fragment>
-      <h1>Meetups!</h1>
       <MeetupList meetups={DUMMY_MEETUPS} />
     </Fragment>
   );
