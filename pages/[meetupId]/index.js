@@ -1,31 +1,34 @@
+import { MongoClient, ObjectId } from "mongodb";
+
 import MeetupDetail from "../../components/meetups/MeetupDetail";
 
-function MeetupDetails() {
+function MeetupDetails(props) {
   return (
     <MeetupDetail
-      image="https://images.unsplash.com/photo-1568992688065-536aad8a12f6?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=889&q=80"
-      title="First meetup"
-      address="Random address 1, some city 12345"
-      description="Meetup description."
+      image={props.meetupData.image}
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
     />
   );
 }
 
 export async function getStaticPaths() {
+  const client = await MongoClient.connect(process.env.DB_URL);
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+
+  client.close();
+
   return {
     fallback: false,
-    paths: [
-      {
-        params: {
-          meetupId: "m1",
-        },
+    paths: meetups.map((meetup) => ({
+      params: {
+        meetupId: meetup._id.toString(),
       },
-      {
-        params: {
-          meetupId: "m2",
-        },
-      },
-    ],
+    })),
   };
 }
 
@@ -33,16 +36,23 @@ export async function getStaticProps(context) {
   // fetch data for a single object
   const meetupId = context.params.meetupId;
 
-  console.log(meetupId);
+  const client = await MongoClient.connect(process.env.DB_URL);
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+
+  const meetup = await meetupsCollection.findOne({ _id: ObjectId(meetupId) });
+
+  client.close();
 
   return {
     props: {
-      image:
-        "https://images.unsplash.com/photo-1568992688065-536aad8a12f6?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=889&q=80",
-      id: "m1",
-      title: "First meetup",
-      address: "Random address 1, some city 12345",
-      description: "Meetup description.",
+      meetupData: {
+        id: meetup._id.toString(),
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        description: meetup.description,
+      },
     },
   };
 }
