@@ -29,12 +29,18 @@ const DUMMY_MEETUPS = [
   },
 ];
 
-function HomePage() {
-  return (
-    <Fragment>
-      <MeetupList meetups={DUMMY_MEETUPS} />
-    </Fragment>
-  );
+function HomePage(props) {
+  return <MeetupList meetups={props.meetups} />;
+}
+
+export function getStaticProps() {
+  // fetch data from an API
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS,
+    },
+    revalidate: 10,
+  };
 }
 
 export default HomePage;
